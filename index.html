@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 뮤직 앨범 제작소</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .synthesizer {
+            display: grid;
+            gap: 30px;
+        }
+
+        .controls-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .controls-section h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            min-width: 120px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .control-group input, .control-group select {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+            max-width: 800px;
+        }
+
+        .key {
+            height: 60px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+        }
+
+        .key.white {
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        .key.black {
+            background: linear-gradient(to bottom, #333, #000);
+            color: white;
+            height: 40px;
+            margin: 0 -10px;
+            z-index: 2;
+        }
+
+        .key:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .key:active, .key.playing {
+            transform: translateY(0);
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            color: white;
+        }
+
+        .sequencer {
+            background: #2c3e50;
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .sequence-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .sequence-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .sequence-step {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #34495e;
+            background: #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .sequence-step.active {
+            background: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+
+        .sequence-step.playing {
+            background: #f39c12;
+            border-color: #e67e22;
+            animation: pulse 0.2s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .album-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .album-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .album-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+        }
+
+        .album-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .album-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .album-card .content {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .album-card .description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .album-card .date {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-align: right;
+        }
+
+        .album-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .recording-indicator {
+            display: none;
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.5; }
+        }
+
+        .visualizer {
+            width: 100%;
+            height: 150px;
+            background: #000;
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .keyboard {
+                grid-template-columns: repeat(8, 1fr);
+            }
+            
+            .sequence-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+            
+            .albums-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 나만의 뮤직 앨범 제작소</h1>
+            <p>음악을 합성하고 나만의 앨범을 만들어보세요!</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('synthesizer')">음악 합성기</button>
+            <button class="tab-btn" onclick="switchTab('albums')">내 앨범</button>
+        </div>
+
+        <!-- 음악 합성기 탭 -->
+        <div id="synthesizer" class="tab-content active">
+            <div class="synthesizer">
+                <!-- 기본 컨트롤 -->
+                <div class="controls-section">
+                    <h3>🎛️ 기본 설정</h3>
+                    <div class="control-group">
+                        <label for="waveform">파형:</label>
+                        <select id="waveform" onchange="updateSynth()">
+                            <option value="sine">Sine</option>
+                            <option value="square">Square</option>
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="volume">볼륨:</label>
+                        <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5" onchange="updateSynth()">
+                        <span id="volumeValue">0.5</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="attack">Attack:</label>
+                        <input type="range" id="attack" min="0" max="2" step="0.1" value="0.1" onchange="updateSynth()">
+                        <span id="attackValue">0.1</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="release">Release:</label>
+                        <input type="range" id="release" min="0" max="5" step="0.1" value="1" onchange="updateSynth()">
+                        <span id="releaseValue">1</span>
+                    </div>
+                </div>
+
+                <!-- 이펙트 -->
+                <div class="controls-section">
+                    <h3>🌟 이펙트</h3>
+                    <div class="control-group">
+                        <label for="reverb">리버브:</label>
+                        <input type="range" id="reverb" min="0" max="1" step="0.1" value="0.3" onchange="updateEffects()">
+                        <span id="reverbValue">0.3</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="delay">딜레이:</label>
+                        <input type="range" id="delay" min="0" max="1" step="0.1" value="0" onchange="updateEffects()">
+                        <span id="delayValue">0</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="filter">필터 주파수:</label>
+                        <input type="range" id="filter" min="100" max="8000" step="100" value="2000" onchange="updateEffects()">
+                        <span id="filterValue">2000 Hz</span>
+                    </div>
+                </div>
+
+                <!-- 가상 키보드 -->
+                <div class="controls-section">
+                    <h3>🎹 가상 키보드</h3>
+                    <div class="keyboard" id="keyboard">
+                        <!-- 키보드는 JavaScript로 생성됩니다 -->
+                    </div>
+                </div>
+
+                <!-- 시퀀서 -->
+                <div class="sequencer">
+                    <h3>🔄 시퀀서</h3>
+                    <div class="sequence-controls">
+                        <button class="btn btn-primary" onclick="playSequence()">재생</button>
+                        <button class="btn btn-danger" onclick="stopSequence()">정지</button>
+                        <button class="btn btn-warning" onclick="clearSequence()">초기화</button>
+                        <label for="bpm" style="color: white; margin-left: 20px;">BPM:</label>
+                        <input type="number" id="bpm" value="120" min="60" max="200" style="width: 80px;" onchange="updateBPM()">
+                    </div>
+                    <div class="sequence-grid" id="sequenceGrid">
+                        <!-- 시퀀스 스텝은 JavaScript로 생성됩니다 -->
+                    </div>
+                </div>
+
+                <!-- 녹음 및 저장 -->
+                <div class="controls-section">
+                    <h3>💾 녹음 및 저장</h3>
+                    <div class="recording-indicator" id="recordingIndicator">🔴 녹음 중...</div>
+                    <div class="control-group">
+                        <button class="btn btn-danger" onclick="startRecording()">녹음 시작</button>
+                        <button class="btn btn-warning" onclick="stopRecording()">녹음 정지</button>
+                        <button class="btn btn-success" onclick="saveToAlbum()">앨범에 저장</button>
+                    </div>
+                    <div class="visualizer" id="visualizer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 앨범 관리 탭 -->
+        <div id="albums" class="tab-content">
+            <div class="album-form">
+                <h3>🎵 새 앨범 트랙 추가</h3>
+                <div class="form-group">
+                    <label for="trackTitle">제목:</label>
+                    <input type="text" id="trackTitle" placeholder="트랙 제목을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="trackContent">내용:</label>
+                    <input type="text" id="trackContent" placeholder="트랙 내용을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="trackDescription">설명:</label>
+                    <textarea id="trackDescription" placeholder="트랙에 대한 자세한 설명을 입력하세요"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addAlbumTrack()">트랙 추가</button>
+            </div>
+
+            <div class="albums-grid" id="albumsGrid">
+                <!-- 앨범 트랙들이 여기에 표시됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수들
+        let synth, reverb, delay, filter, recorder, recordedChunks = [];
+        let sequence = Array(16).fill(false);
+        let isPlaying = false;
+        let currentStep = 0;
+        let sequenceInterval;
+        let albums = JSON.parse(localStorage.getItem('musicAlbums')) || [];
+
+        // 음표와 주파수 매핑
+        const notes = [
+            { name: 'C4', freq: 261.63, type: 'white' },
+            { name: 'C#4', freq: 277.18, type: 'black' },
+            { name: 'D4', freq: 293.66, type: 'white' },
+            { name: 'D#4', freq: 311.13, type: 'black' },
+            { name: 'E4', freq: 329.63, type: 'white' },
+            { name: 'F4', freq: 349.23, type: 'white' },
+            { name: 'F#4', freq: 369.99, type: 'black' },
+            { name: 'G4', freq: 392.00, type: 'white' },
+            { name: 'G#4', freq: 415.30, type: 'black' },
+            { name: 'A4', freq: 440.00, type: 'white' },
+            { name: 'A#4', freq: 466.16, type: 'black' },
+            { name: 'B4', freq: 493.88, type: 'white' }
+        ];
+
+        // 초기화
+        window.addEventListener('load', async () => {
+            await Tone.start();
+            initializeSynthesizer();
+            createKeyboard();
+            createSequencer();
+            displayAlbums();
+            console.log('음악 제작 시스템이 준비되었습니다!');
+        });
+
+        // 신시사이저 초기화
+        function initializeSynthesizer() {
+            // 이펙트 체인 생성
+            reverb = new Tone.Reverb({
+                decay: 2,
+                wet: 0.3
+            });
+            
+            delay = new Tone.FeedbackDelay({
+                delayTime: "8n",
+                feedback: 0.3,
+                wet: 0
+            });
+            
+            filter = new Tone.Filter({
+                frequency: 2000,
+                type: "lowpass"
+            });
+
+            // 신시사이저 생성
+            synth = new Tone.Synth({
+                oscillator: {
+                    type: 'sine'
+                },
+                envelope: {
+                    attack: 0.1,
+                    decay: 0.2,
+                    sustain: 0.3,
+                    release: 1
+                }
+            });
+
+            // 이펙트 체인 연결
+            synth.chain(filter, delay, reverb, Tone.Destination);
+        }
+
+        // 가상 키보드 생성
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+
+            notes.forEach((note, index) => {
+                const key = document.createElement('button');
+                key.className = `key ${note.type}`;
+                key.textContent = note.name;
+                key.dataset.note = note.name;
+                key.dataset.freq = note.freq;
+
+                key.addEventListener('mousedown', () => playNote(note.freq, key));
+                key.addEventListener('mouseup', () => stopNote(key));
+                key.addEventListener('mouseleave', () => stopNote(key));
+
+                keyboard.appendChild(key);
+            });
+        }
+
+        // 시퀀서 생성
+        function createSequencer() {
+            const grid = document.getElementById('sequenceGrid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 16; i++) {
+                const step = document.createElement('div');
+                step.className = 'sequence-step';
+                step.textContent = i + 1;
+                step.onclick = () => toggleStep(i);
+                grid.appendChild(step);
+            }
+        }
+
+        // 음표 재생
+        function playNote(frequency, keyElement) {
+            if (keyElement) {
+                keyElement.classList.add('playing');
+            }
+            synth.triggerAttack(frequency);
+        }
+
+        // 음표 정지
+        function stopNote(keyElement) {
+            if (keyElement) {
+                keyElement.classList.remove('playing');
+            }
+            synth.triggerRelease();
+        }
+
+        // 시퀀서 스텝 토글
+        function toggleStep(stepIndex) {
+            sequence[stepIndex] = !sequence[stepIndex];
+            const stepElement = document.querySelectorAll('.sequence-step')[stepIndex];
+            stepElement.classList.toggle('active');
+        }
+
+        // 시퀀스 재생
+        function playSequence() {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            currentStep = 0;
+            
+            const bpm = document.getElementById('bpm').value;
+            const stepTime = (60 / bpm / 4) * 1000; // 16분음표 기준
+
+            sequenceInterval = setInterval(() => {
+                // 이전 스텝 표시 제거
+                document.querySelectorAll('.sequence-step').forEach(step => {
+                    step.classList.remove('playing');
+                });
+
+                // 현재 스텝 표시
+                const currentStepElement = document.querySelectorAll('.sequence-step')[currentStep];
+                currentStepElement.classList.add('playing');
+
+                // 활성 스텝에서 음표 재생
+                if (sequence[currentStep]) {
+                    const randomNote = notes[Math.floor(Math.random() * notes.length)];
+                    synth.triggerAttackRelease(randomNote.freq, '8n');
+                }
+
+                currentStep = (currentStep + 1) % 16;
+            }, stepTime);
+        }
+
+        // 시퀀스 정지
+        function stopSequence() {
+            isPlaying = false;
+            clearInterval(sequenceInterval);
+            
+            document.querySelectorAll('.sequence-step').forEach(step => {
+                step.classList.remove('playing');
+            });
+        }
+
+        // 시퀀스 초기화
+        function clearSequence() {
+            stopSequence();
+            sequence = Array(16).fill(false);
+            document.querySelectorAll('.sequence-step').forEach(step => {
+                step.classList.remove('active');
+            });
+        }
+
+        // BPM 업데이트
+        function updateBPM() {
+            if (isPlaying) {
+                stopSequence();
+                playSequence();
+            }
+        }
+
+        // 신시사이저 설정 업데이트
+        function updateSynth() {
+            const waveform = document.getElementById('waveform').value;
+            const volume = document.getElementById('volume').value;
+            const attack = document.getElementById('attack').value;
+            const release = document.getElementById('release').value;
+
+            synth.oscillator.type = waveform;
+            synth.volume.value = Tone.gainToDb(volume);
+            synth.envelope.attack = parseFloat(attack);
+            synth.envelope.release = parseFloat(release);
+
+            // 값 표시 업데이트
+            document.getElementById('volumeValue').textContent = volume;
+            document.getElementById('attackValue').textContent = attack;
+            document.getElementById('releaseValue').textContent = release;
+        }
+
+        // 이펙트 설정 업데이트
+        function updateEffects() {
+            const reverbWet = document.getElementById('reverb').value;
+            const delayWet = document.getElementById('delay').value;
+            const filterFreq = document.getElementById('filter').value;
+
+            reverb.wet.value = parseFloat(reverbWet);
+            delay.wet.value = parseFloat(delayWet);
+            filter.frequency.value = parseFloat(filterFreq);
+
+            // 값 표시 업데이트
+            document.getElementById('reverbValue').textContent = reverbWet;
+            document.getElementById('delayValue').textContent = delayWet;
+            document.getElementById('filterValue').textContent = filterFreq + ' Hz';
+        }
+
+        // 녹음 시작
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    recorder = new MediaRecorder(stream);
+                    recordedChunks = [];
+
+                    recorder.ondataavailable = event => {
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                        }
+                    };
+
+                    recorder.start();
+                    document.getElementById('recordingIndicator').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('녹음 시작 실패:', error);
+                    alert('마이크 접근 권한이 필요합니다.');
+                });
+        }
+
+        // 녹음 정지
+        function stopRecording() {
+            if (recorder && recorder.state !== 'inactive') {
+                recorder.stop();
+                document.getElementById('recordingIndicator').style.display = 'none';
+            }
+        }
+
+        // 앨범에 저장
+        function saveToAlbum() {
+            const title = prompt('트랙 제목을 입력하세요:');
+            if (!title) return;
+
+            const content = prompt('트랙 내용을 입력하세요:');
+            const description = prompt('트랙 설명을 입력하세요:');
+
+            const albumTrack = {
+                id: Date.now(),
+                title: title || '제목 없음',
+                content: content || '내용 없음',
+                description: description || '설명 없음',
+                createdAt: new Date().toLocaleDateString('ko-KR'),
+                settings: {
+                    waveform: document.getElementById('waveform').value,
+                    volume: document.getElementById('volume').value,
+                    attack: document.getElementById('attack').value,
+                    release: document.getElementById('release').value,
+                    reverb: document.getElementById('reverb').value,
+                    delay: document.getElementById('delay').value,
+                    filter: document.getElementById('filter').value,
+                    bpm: document.getElementById('bpm').value,
+                    sequence: [...sequence]
+                }
+            };
+
+            albums.push(albumTrack);
+            localStorage.setItem('musicAlbums', JSON.stringify(albums));
+            displayAlbums();
+            alert('트랙이 앨범에 저장되었습니다!');
+        }
+
+        // 앨범 트랙 추가
+        function addAlbumTrack() {
+            const title = document.getElementById('trackTitle').value;
+            const content = document.getElementById('trackContent').value;
+            const description = document.getElementById('trackDescription').value;
+
+            if (!title.trim()) {
+                alert('제목을 입력하세요.');
+                return;
+            }
+
+            const albumTrack = {
+                id: Date.now(),
+                title: title,
+                content: content || '내용 없음',
+                description: description || '설명 없음',
+                createdAt: new Date().toLocaleDateString('ko-KR'),
+                settings: null // 수동 추가된 트랙은 신시사이저 설정이 없음
+            };
+
+            albums.push(albumTrack);
+            localStorage.setItem('musicAlbums', JSON.stringify(albums));
+
+            // 입력 필드 초기화
+            document.getElementById('trackTitle').value = '';
+            document.getElementById('trackContent').value = '';
+            document.getElementById('trackDescription').value = '';
+
+            displayAlbums();
+            alert('새 트랙이 앨범에 추가되었습니다!');
+        }
+
+        // 앨범 표시
+        function displayAlbums() {
+            const albumsGrid = document.getElementById('albumsGrid');
+            albumsGrid.innerHTML = '';
+
+            if (albums.length === 0) {
+                albumsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                        <h3>아직 앨범 트랙이 없습니다</h3>
+                        <p>음악 합성기에서 트랙을 만들거나 새 트랙을 추가해보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            albums.forEach(album => {
+                const albumCard = document.createElement('div');
+                albumCard.className = 'album-card';
+                albumCard.innerHTML = `
+                    <h3>${album.title}</h3>
+                    <div class="content"><strong>내용:</strong> ${album.content}</div>
+                    <div class="description">${album.description}</div>
+                    <div class="date">생성일: ${album.createdAt}</div>
+                    ${album.settings ? '<div style="font-size: 0.8rem; opacity: 0.7; margin-top: 10px;">🎛️ 신시사이저 설정 포함</div>' : ''}
+                    <div class="album-actions">
+                        ${album.settings ? `<button class="btn btn-primary btn-small" onclick="loadTrackSettings(${album.id})">설정 로드</button>` : ''}
+                        <button class="btn btn-success btn-small" onclick="playTrackDemo(${album.id})">미리듣기</button>
+                        <button class="btn btn-warning btn-small" onclick="editTrack(${album.id})">편집</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteTrack(${album.id})">삭제</button>
+                    </div>
+                `;
+                albumsGrid.appendChild(albumCard);
+            });
+        }
+
+        // 트랙 설정 로드
+        function loadTrackSettings(trackId) {
+            const track = albums.find(album => album.id === trackId);
+            if (!track || !track.settings) {
+                alert('이 트랙에는 신시사이저 설정이 없습니다.');
+                return;
+            }
+
+            const settings = track.settings;
+
+            // 신시사이저 탭으로 이동
+            switchTab('synthesizer');
+
+            // 설정 적용
+            document.getElementById('waveform').value = settings.waveform;
+            document.getElementById('volume').value = settings.volume;
+            document.getElementById('attack').value = settings.attack;
+            document.getElementById('release').value = settings.release;
+            document.getElementById('reverb').value = settings.reverb;
+            document.getElementById('delay').value = settings.delay;
+            document.getElementById('filter').value = settings.filter;
+            document.getElementById('bpm').value = settings.bpm;
+
+            // 시퀀스 패턴 로드
+            sequence = [...settings.sequence];
+            document.querySelectorAll('.sequence-step').forEach((step, index) => {
+                if (sequence[index]) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+
+            // 설정 업데이트
+            updateSynth();
+            updateEffects();
+
+            alert(`"${track.title}" 트랙의 설정이 로드되었습니다!`);
+        }
+
+        // 트랙 미리듣기
+        function playTrackDemo(trackId) {
+            const track = albums.find(album => album.id === trackId);
+            if (!track) return;
+
+            if (!track.settings) {
+                alert('이 트랙은 수동으로 추가된 트랙으로 미리듣기가 불가능합니다.');
+                return;
+            }
+
+            // 임시로 설정 저장
+            const currentSettings = {
+                waveform: document.getElementById('waveform').value,
+                volume: document.getElementById('volume').value,
+                attack: document.getElementById('attack').value,
+                release: document.getElementById('release').value,
+                reverb: document.getElementById('reverb').value,
+                delay: document.getElementById('delay').value,
+                filter: document.getElementById('filter').value,
+                bpm: document.getElementById('bpm').value,
+                sequence: [...sequence]
+            };
+
+            // 트랙 설정 로드
+            loadTrackSettings(trackId);
+
+            // 잠시 후 재생
+            setTimeout(() => {
+                playSequence();
+                
+                // 몇 초 후 정지하고 원래 설정 복원
+                setTimeout(() => {
+                    stopSequence();
+                    
+                    // 원래 설정 복원
+                    document.getElementById('waveform').value = currentSettings.waveform;
+                    document.getElementById('volume').value = currentSettings.volume;
+                    document.getElementById('attack').value = currentSettings.attack;
+                    document.getElementById('release').value = currentSettings.release;
+                    document.getElementById('reverb').value = currentSettings.reverb;
+                    document.getElementById('delay').value = currentSettings.delay;
+                    document.getElementById('filter').value = currentSettings.filter;
+                    document.getElementById('bpm').value = currentSettings.bpm;
+                    sequence = [...currentSettings.sequence];
+                    
+                    updateSynth();
+                    updateEffects();
+                    
+                    document.querySelectorAll('.sequence-step').forEach((step, index) => {
+                        if (sequence[index]) {
+                            step.classList.add('active');
+                        } else {
+                            step.classList.remove('active');
+                        }
+                    });
+                }, 8000); // 8초간 재생
+            }, 500);
+        }
+
+        // 트랙 편집
+        function editTrack(trackId) {
+            const track = albums.find(album => album.id === trackId);
+            if (!track) return;
+
+            const newTitle = prompt('새 제목을 입력하세요:', track.title);
+            if (newTitle === null) return;
+
+            const newContent = prompt('새 내용을 입력하세요:', track.content);
+            if (newContent === null) return;
+
+            const newDescription = prompt('새 설명을 입력하세요:', track.description);
+            if (newDescription === null) return;
+
+            track.title = newTitle || track.title;
+            track.content = newContent || track.content;
+            track.description = newDescription || track.description;
+
+            localStorage.setItem('musicAlbums', JSON.stringify(albums));
+            displayAlbums();
+            alert('트랙이 수정되었습니다!');
+        }
+
+        // 트랙 삭제
+        function deleteTrack(trackId) {
+            if (!confirm('정말로 이 트랙을 삭제하시겠습니까?')) return;
+
+            albums = albums.filter(album => album.id !== trackId);
+            localStorage.setItem('musicAlbums', JSON.stringify(albums));
+            displayAlbums();
+            alert('트랙이 삭제되었습니다.');
+        }
+
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 버튼과 컨텐츠 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // 선택된 탭 활성화
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 키보드 단축키
+        document.addEventListener('keydown', (e) => {
+            // 스페이스바로 시퀀스 재생/정지
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                if (isPlaying) {
+                    stopSequence();
+                } else {
+                    playSequence();
+                }
+            }
+
+            // 키보드로 음표 연주
+            const keyToNote = {
+                'KeyA': notes[0], 'KeyW': notes[1], 'KeyS': notes[2], 'KeyE': notes[3],
+                'KeyD': notes[4], 'KeyF': notes[5], 'KeyT': notes[6], 'KeyG': notes[7],
+                'KeyY': notes[8], 'KeyH': notes[9], 'KeyU': notes[10], 'KeyJ': notes[11]
+            };
+
+            if (keyToNote[e.code] && !e.repeat) {
+                const note = keyToNote[e.code];
+                const keyElement = document.querySelector(`[data-note="${note.name}"]`);
+                playNote(note.freq, keyElement);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const keyToNote = {
+                'KeyA': notes[0], 'KeyW': notes[1], 'KeyS': notes[2], 'KeyE': notes[3],
+                'KeyD': notes[4], 'KeyF': notes[5], 'KeyT': notes[6], 'KeyG': notes[7],
+                'KeyY': notes[8], 'KeyH': notes[9], 'KeyU': notes[10], 'KeyJ': notes[11]
+            };
+
+            if (keyToNote[e.code]) {
+                const note = keyToNote[e.code];
+                const keyElement = document.querySelector(`[data-note="${note.name}"]`);
+                stopNote(keyElement);
+            }
+        });
+
+        // 데이터 내보내기/가져오기 함수들
+        function exportAlbums() {
+            const dataStr = JSON.stringify(albums, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'my_music_albums.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importAlbums() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedAlbums = JSON.parse(e.target.result);
+                        albums = [...albums, ...importedAlbums];
+                        localStorage.setItem('musicAlbums', JSON.stringify(albums));
+                        displayAlbums();
+                        alert('앨범 데이터를 성공적으로 가져왔습니다!');
+                    } catch (error) {
+                        alert('파일을 읽는 중 오류가 발생했습니다.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        // 전체 앨범 초기화
+        function clearAllAlbums() {
+            if (!confirm('모든 앨범 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+            
+            albums = [];
+            localStorage.removeItem('musicAlbums');
+            displayAlbums();
+            alert('모든 앨범 데이터가 삭제되었습니다.');
+        }
+
+        // 앨범 관리 버튼들을 앨범 탭에 추가하기 위한 HTML 삽입
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const albumsTab = document.getElementById('albums');
+                const manageButtons = document.createElement('div');
+                manageButtons.className = 'controls-section';
+                manageButtons.style.marginBottom = '20px';
+                manageButtons.innerHTML = `
+                    <h3>📁 앨범 관리</h3>
+                    <div class="control-group">
+                        <button class="btn btn-success" onclick="exportAlbums()">앨범 내보내기</button>
+                        <button class="btn btn-primary" onclick="importAlbums()">앨범 가져오기</button>
+                        <button class="btn btn-danger" onclick="clearAllAlbums()">전체 삭제</button>
+                    </div>
+                `;
+                
+                const albumForm = albumsTab.querySelector('.album-form');
+                albumForm.parentNode.insertBefore(manageButtons, albumForm.nextSibling);
+            }, 100);
+        });
+
+        console.log('🎵 나만의 뮤직 앨범 제작소가 준비되었습니다!');
+        console.log('키보드 단축키:');
+        console.log('- 스페이스바: 시퀀스 재생/정지');
+        console.log('- A,W,S,E,D,F,T,G,Y,H,U,J: 음표 연주');
+    </script>
+</body>
+</html>
