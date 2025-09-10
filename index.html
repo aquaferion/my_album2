@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나만의 뮤직 앨범 제작소</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -101,12 +100,6 @@
             font-size: 1.3rem;
         }
 
-        .file-upload {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
         .file-input-wrapper {
             position: relative;
             display: inline-block;
@@ -174,6 +167,7 @@
             gap: 10px;
             margin: 10px 0;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .volume-control {
@@ -224,8 +218,11 @@
             font-size: 14px;
         }
 
-        .control-row input {
+        .control-row input, .control-row select {
             flex: 1;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
         }
 
         .control-row span {
@@ -276,7 +273,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .waveform-display {
+        .status-display {
             width: 100%;
             height: 120px;
             background: #34495e;
@@ -287,56 +284,8 @@
             justify-content: center;
             color: #bdc3c7;
             font-size: 14px;
-        }
-
-        .keyboard {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2px;
-            margin: 20px 0;
-            max-width: 800px;
-            height: 120px;
-        }
-
-        .key {
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            padding-bottom: 10px;
-        }
-
-        .key.white {
-            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
-            border: 1px solid #ccc;
-            color: #333;
-            grid-row: 1;
-        }
-
-        .key.black {
-            background: linear-gradient(to bottom, #333, #000);
-            color: white;
-            grid-row: 1;
-            height: 70px;
-            z-index: 2;
-            margin: 0 -5px;
-        }
-
-        .key:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        .key:active, .key.playing {
-            transform: translateY(0);
-            background: linear-gradient(to bottom, #667eea, #764ba2);
-            color: white;
+            text-align: center;
+            padding: 20px;
         }
 
         .album-form {
@@ -467,10 +416,6 @@
                 font-size: 2rem;
             }
             
-            .keyboard {
-                grid-template-columns: repeat(8, 1fr);
-            }
-            
             .albums-grid {
                 grid-template-columns: 1fr;
             }
@@ -498,13 +443,11 @@
             <!-- 파일 업로드 섹션 -->
             <div class="upload-section">
                 <h3>📁 음악 파일 업로드</h3>
-                <div class="file-upload">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="audioFiles" class="file-input" multiple accept="audio/*" onchange="handleFileUpload(event)">
-                        <label for="audioFiles" class="file-input-label">
-                            🎵 음악 파일을 선택하거나 드래그하여 업로드하세요 (MP3, WAV, OGG 등)
-                        </label>
-                    </div>
+                <div class="file-input-wrapper">
+                    <input type="file" id="audioFiles" class="file-input" multiple accept="audio/*">
+                    <label for="audioFiles" class="file-input-label">
+                        🎵 음악 파일을 선택하거나 드래그하여 업로드하세요 (MP3, WAV, OGG 등)
+                    </label>
                 </div>
                 
                 <div id="uploadedFiles" class="uploaded-files">
@@ -521,32 +464,8 @@
                         <h4>마스터 컨트롤</h4>
                         <div class="control-row">
                             <label>마스터 볼륨:</label>
-                            <input type="range" id="masterVolume" min="0" max="1" step="0.1" value="0.8" onchange="updateMasterVolume()">
+                            <input type="range" id="masterVolume" min="0" max="1" step="0.1" value="0.8">
                             <span id="masterVolumeValue">0.8</span>
-                        </div>
-                        <div class="control-row">
-                            <label>크로스페이드:</label>
-                            <input type="range" id="crossfade" min="0" max="1" step="0.1" value="0.5" onchange="updateCrossfade()">
-                            <span id="crossfadeValue">0.5</span>
-                        </div>
-                    </div>
-
-                    <div class="effect-group">
-                        <h4>이펙트</h4>
-                        <div class="control-row">
-                            <label>리버브:</label>
-                            <input type="range" id="reverbWet" min="0" max="1" step="0.1" value="0.3" onchange="updateEffects()">
-                            <span id="reverbWetValue">0.3</span>
-                        </div>
-                        <div class="control-row">
-                            <label>딜레이:</label>
-                            <input type="range" id="delayWet" min="0" max="1" step="0.1" value="0" onchange="updateEffects()">
-                            <span id="delayWetValue">0</span>
-                        </div>
-                        <div class="control-row">
-                            <label>필터:</label>
-                            <input type="range" id="filterFreq" min="100" max="8000" step="100" value="2000" onchange="updateEffects()">
-                            <span id="filterFreqValue">2000Hz</span>
                         </div>
                     </div>
 
@@ -554,7 +473,7 @@
                         <h4>합성 모드</h4>
                         <div class="control-row">
                             <label>모드:</label>
-                            <select id="synthesisMode" onchange="updateSynthesisMode()" style="flex: 1; padding: 5px;">
+                            <select id="synthesisMode">
                                 <option value="overlay">오버레이 (겹치기)</option>
                                 <option value="sequence">시퀀스 (순차재생)</option>
                                 <option value="crossfade">크로스페이드</option>
@@ -563,7 +482,7 @@
                         </div>
                         <div class="control-row">
                             <label>템포 조절:</label>
-                            <input type="range" id="tempoAdjust" min="0.5" max="2" step="0.1" value="1" onchange="updateTempo()">
+                            <input type="range" id="tempoAdjust" min="0.5" max="2" step="0.1" value="1">
                             <span id="tempoAdjustValue">1.0x</span>
                         </div>
                     </div>
@@ -576,18 +495,9 @@
                     <button class="btn btn-warning" onclick="clearAll()">🗑️ 모두 지우기</button>
                 </div>
 
-                <div class="waveform-display" id="waveformDisplay">
-                    합성된 음악의 파형이 여기에 표시됩니다
+                <div class="status-display" id="statusDisplay">
+                    음악 파일을 업로드하고 합성 버튼을 눌러주세요!
                 </div>
-            </div>
-
-            <!-- 가상 키보드 (추가 사운드용) -->
-            <div class="upload-section">
-                <h3>🎹 가상 키보드 (추가 사운드)</h3>
-                <div class="keyboard" id="keyboard"></div>
-                <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                    키보드 단축키: A, W, S, E, D, F, T, G, Y, H, U, J
-                </p>
             </div>
         </div>
 
@@ -627,103 +537,16 @@
 
     <script>
         // 전역 변수들
-        let audioContext, masterGain, reverb, delay, filter;
         let uploadedAudioFiles = [];
-        let audioPlayers = [];
         let albums = JSON.parse(localStorage.getItem('musicAlbums')) || [];
         let isComposing = false;
-        let compositionRecorder, recordedChunks = [];
-
-        // 가상 키보드용 신시사이저
-        let keyboardSynth;
-
-        // 음표와 주파수 매핑
-        const notes = [
-            { name: 'C4', freq: 261.63, key: 'KeyA' },
-            { name: 'C#4', freq: 277.18, key: 'KeyW' },
-            { name: 'D4', freq: 293.66, key: 'KeyS' },
-            { name: 'D#4', freq: 311.13, key: 'KeyE' },
-            { name: 'E4', freq: 329.63, key: 'KeyD' },
-            { name: 'F4', freq: 349.23, key: 'KeyF' },
-            { name: 'F#4', freq: 369.99, key: 'KeyT' },
-            { name: 'G4', freq: 392.00, key: 'KeyG' },
-            { name: 'G#4', freq: 415.30, key: 'KeyY' },
-            { name: 'A4', freq: 440.00, key: 'KeyH' },
-            { name: 'A#4', freq: 466.16, key: 'KeyU' },
-            { name: 'B4', freq: 493.88, key: 'KeyJ' }
-        ];
 
         // 초기화
-        window.addEventListener('load', async () => {
-            await initializeAudio();
-            createKeyboard();
+        window.addEventListener('load', () => {
+            document.getElementById('audioFiles').addEventListener('change', handleFileUpload);
             displayAlbums();
             console.log('🎵 음악 합성 시스템이 준비되었습니다!');
         });
-
-        // 오디오 컨텍스트 초기화
-        async function initializeAudio() {
-            try {
-                await Tone.start();
-                
-                // 키보드 신시사이저 초기화
-                keyboardSynth = new Tone.Synth({
-                    oscillator: { type: 'triangle' },
-                    envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 1 }
-                }).toDestination();
-
-                console.log('오디오 시스템 초기화 완료');
-            } catch (error) {
-                console.error('오디오 초기화 오류:', error);
-            }
-        }
-
-        // 가상 키보드 생성
-        function createKeyboard() {
-            const keyboard = document.getElementById('keyboard');
-            keyboard.innerHTML = '';
-
-            notes.forEach((note, index) => {
-                const key = document.createElement('button');
-                const isBlackKey = note.name.includes('#');
-                
-                key.className = `key ${isBlackKey ? 'black' : 'white'}`;
-                key.textContent = note.name;
-                key.dataset.note = note.name;
-                key.dataset.freq = note.freq;
-
-                // 검은 건반 위치 조정
-                if (isBlackKey) {
-                    const whiteKeyIndex = notes.slice(0, index).filter(n => !n.name.includes('#')).length;
-                    key.style.gridColumn = whiteKeyIndex + 1;
-                    key.style.marginLeft = '-25px';
-                    key.style.marginRight = '-25px';
-                    key.style.width = '50px';
-                }
-
-                key.addEventListener('mousedown', () => playKeyboardNote(note.freq, key));
-                key.addEventListener('mouseup', () => stopKeyboardNote(key));
-                key.addEventListener('mouseleave', () => stopKeyboardNote(key));
-
-                keyboard.appendChild(key);
-            });
-        }
-
-        // 키보드 음표 재생
-        function playKeyboardNote(frequency, keyElement) {
-            if (keyElement) {
-                keyElement.classList.add('playing');
-            }
-            keyboardSynth.triggerAttack(frequency);
-        }
-
-        // 키보드 음표 정지
-        function stopKeyboardNote(keyElement) {
-            if (keyElement) {
-                keyElement.classList.remove('playing');
-            }
-            keyboardSynth.triggerRelease();
-        }
 
         // 파일 업로드 처리
         function handleFileUpload(event) {
@@ -740,24 +563,23 @@
 
         // 오디오 파일 처리
         function processAudioFile(file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const audioData = {
-                    id: Date.now() + Math.random(),
-                    name: file.name,
-                    data: e.target.result,
-                    file: file,
-                    volume: 0.5,
-                    isPlaying: false,
-                    audio: null
-                };
-                
-                uploadedAudioFiles.push(audioData);
-                displayUploadedFiles();
+            const audioData = {
+                id: Date.now() + Math.random(),
+                name: file.name,
+                file: file,
+                volume: 0.5,
+                isPlaying: false,
+                audio: null
             };
             
-            reader.readAsDataURL(file);
+            // 오디오 객체 생성
+            const audio = new Audio(URL.createObjectURL(file));
+            audioData.audio = audio;
+            
+            uploadedAudioFiles.push(audioData);
+            displayUploadedFiles();
+            
+            console.log(`${file.name} 파일 처리 완료`);
         }
 
         // 업로드된 파일들 표시
@@ -768,10 +590,6 @@
             uploadedAudioFiles.forEach((audioData, index) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
-                
-                // 오디오 요소 생성
-                const audio = new Audio(audioData.data);
-                audioData.audio = audio;
                 
                 fileItem.innerHTML = `
                     <h4>🎵 ${audioData.name}</h4>
@@ -800,16 +618,18 @@
                 `;
 
                 // 진행률 업데이트
-                audio.addEventListener('timeupdate', () => {
-                    const progress = (audio.currentTime / audio.duration) * 100;
-                    const progressBar = document.getElementById(`progress-${audioData.id}`);
-                    if (progressBar) {
-                        progressBar.style.width = `${progress}%`;
+                audioData.audio.addEventListener('timeupdate', () => {
+                    if (audioData.audio.duration) {
+                        const progress = (audioData.audio.currentTime / audioData.audio.duration) * 100;
+                        const progressBar = document.getElementById(`progress-${audioData.id}`);
+                        if (progressBar) {
+                            progressBar.style.width = `${progress}%`;
+                        }
                     }
                 });
 
                 // 재생 종료 시
-                audio.addEventListener('ended', () => {
+                audioData.audio.addEventListener('ended', () => {
                     audioData.isPlaying = false;
                     const playBtn = document.getElementById(`play-btn-${index}`);
                     if (playBtn) {
@@ -883,82 +703,96 @@
 
             isComposing = true;
             const mode = document.getElementById('synthesisMode').value;
-            const crossfadeValue = parseFloat(document.getElementById('crossfade').value);
+            const masterVolume = parseFloat(document.getElementById('masterVolume').value);
             const tempoAdjust = parseFloat(document.getElementById('tempoAdjust').value);
 
-            // 파형 표시 업데이트
-            document.getElementById('waveformDisplay').innerHTML = `
+            // 상태 표시 업데이트
+            document.getElementById('statusDisplay').innerHTML = `
                 <div style="color: #2ecc71; font-weight: bold;">
-                    🎵 합성 모드: ${getModeName(mode)} | 템포: ${tempoAdjust}x | 크로스페이드: ${crossfadeValue}
+                    🎵 합성 시작! 모드: ${getModeName(mode)}
                     <br>
                     <div style="margin-top: 10px; font-size: 12px;">
-                        ${uploadedAudioFiles.length}개 파일 합성 중...
+                        ${uploadedAudioFiles.length}개 파일 합성 중... (마스터 볼륨: ${masterVolume}, 템포: ${tempoAdjust}x)
                     </div>
                 </div>
             `;
 
+            // 합성 모드에 따라 실행
             switch (mode) {
                 case 'overlay':
-                    startOverlayMode();
+                    executeOverlayMode(masterVolume, tempoAdjust);
                     break;
                 case 'sequence':
-                    startSequenceMode();
+                    executeSequenceMode(masterVolume, tempoAdjust);
                     break;
                 case 'crossfade':
-                    startCrossfadeMode();
+                    executeCrossfadeMode(masterVolume, tempoAdjust);
                     break;
                 case 'harmonize':
-                    startHarmonizeMode();
+                    executeHarmonizeMode(masterVolume, tempoAdjust);
                     break;
             }
         }
 
-        // 오버레이 모드 (모든 파일 동시 재생)
-        function startOverlayMode() {
+        // 오버레이 모드 실행
+        function executeOverlayMode(masterVolume, tempoAdjust) {
             uploadedAudioFiles.forEach((audioData, index) => {
                 const audio = audioData.audio;
-                audio.volume = audioData.volume * parseFloat(document.getElementById('masterVolume').value);
-                audio.currentTime = 0;
-                
-                // 템포 조절 (playbackRate 사용)
-                const tempoAdjust = parseFloat(document.getElementById('tempoAdjust').value);
+                audio.volume = audioData.volume * masterVolume;
                 audio.playbackRate = tempoAdjust;
-                
+                audio.currentTime = 0;
                 audio.play().catch(e => console.log(`파일 ${index} 재생 오류:`, e));
             });
+
+            setTimeout(() => {
+                document.getElementById('statusDisplay').innerHTML = `
+                    <div style="color: #2ecc71; font-weight: bold;">
+                        ✅ 오버레이 합성 완료! ${uploadedAudioFiles.length}개 파일이 동시 재생 중
+                    </div>
+                `;
+            }, 500);
         }
 
-        // 시퀀스 모드 (순차적 재생)
-        function startSequenceMode() {
+        // 시퀀스 모드 실행
+        function executeSequenceMode(masterVolume, tempoAdjust) {
             let currentIndex = 0;
             
             function playNext() {
                 if (currentIndex >= uploadedAudioFiles.length) {
                     isComposing = false;
+                    document.getElementById('statusDisplay').innerHTML = `
+                        <div style="color: #2ecc71; font-weight: bold;">
+                            ✅ 시퀀스 합성 완료! 모든 파일 재생 완료
+                        </div>
+                    `;
                     return;
                 }
 
                 const audioData = uploadedAudioFiles[currentIndex];
                 const audio = audioData.audio;
-                audio.volume = audioData.volume * parseFloat(document.getElementById('masterVolume').value);
-                audio.currentTime = 0;
-                
-                const tempoAdjust = parseFloat(document.getElementById('tempoAdjust').value);
+                audio.volume = audioData.volume * masterVolume;
                 audio.playbackRate = tempoAdjust;
+                audio.currentTime = 0;
 
                 audio.onended = () => {
                     currentIndex++;
-                    playNext();
+                    setTimeout(playNext, 500); // 0.5초 간격
                 };
 
                 audio.play().catch(e => console.log(`파일 ${currentIndex} 재생 오류:`, e));
+                
+                document.getElementById('statusDisplay').innerHTML = `
+                    <div style="color: #2ecc71; font-weight: bold;">
+                        🎵 시퀀스 재생 중: ${audioData.name} (${currentIndex + 1}/${uploadedAudioFiles.length})
+                    </div>
+                `;
             }
 
             playNext();
         }
 
-        // 크로스페이드 모드 (페이드 인/아웃)
-        function startCrossfadeMode() {
+        // 크로스페이드 모드 실행
+        function executeCrossfadeMode(masterVolume, tempoAdjust) {
             if (uploadedAudioFiles.length < 2) return;
 
             let currentIndex = 0;
@@ -967,19 +801,27 @@
             function playCrossfade() {
                 if (currentIndex >= uploadedAudioFiles.length - 1) {
                     isComposing = false;
+                    document.getElementById('statusDisplay').innerHTML = `
+                        <div style="color: #2ecc71; font-weight: bold;">
+                            ✅ 크로스페이드 합성 완료!
+                        </div>
+                    `;
                     return;
                 }
 
                 const current = uploadedAudioFiles[currentIndex].audio;
                 const next = uploadedAudioFiles[currentIndex + 1].audio;
                 
-                const masterVol = parseFloat(document.getElementById('masterVolume').value);
-                const tempoAdjust = parseFloat(document.getElementById('tempoAdjust').value);
-                
-                current.volume = uploadedAudioFiles[currentIndex].volume * masterVol;
+                current.volume = uploadedAudioFiles[currentIndex].volume * masterVolume;
                 current.playbackRate = tempoAdjust;
                 current.currentTime = 0;
                 current.play();
+
+                document.getElementById('statusDisplay').innerHTML = `
+                    <div style="color: #2ecc71; font-weight: bold;">
+                        🌊 크로스페이드 중: ${uploadedAudioFiles[currentIndex].name} → ${uploadedAudioFiles[currentIndex + 1].name}
+                    </div>
+                `;
 
                 // 크로스페이드 시작 시점 계산
                 const crossfadeStart = Math.max(0, current.duration - crossfadeDuration);
@@ -991,7 +833,7 @@
                     next.play();
 
                     // 볼륨 페이드
-                    const fadeSteps = 100;
+                    const fadeSteps = 50;
                     const fadeInterval = (crossfadeDuration * 1000) / fadeSteps;
                     let step = 0;
 
@@ -999,8 +841,8 @@
                         step++;
                         const progress = step / fadeSteps;
                         
-                        current.volume = (uploadedAudioFiles[currentIndex].volume * masterVol) * (1 - progress);
-                        next.volume = (uploadedAudioFiles[currentIndex + 1].volume * masterVol) * progress;
+                        current.volume = (uploadedAudioFiles[currentIndex].volume * masterVolume) * (1 - progress);
+                        next.volume = (uploadedAudioFiles[currentIndex + 1].volume * masterVolume) * progress;
 
                         if (step >= fadeSteps) {
                             clearInterval(fadeTimer);
@@ -1008,7 +850,7 @@
                             currentIndex++;
                             
                             // 다음 크로스페이드 준비
-                            setTimeout(() => playCrossfade(), 2000);
+                            setTimeout(() => playCrossfade(), 1000);
                         }
                     }, fadeInterval);
 
@@ -1018,70 +860,111 @@
             playCrossfade();
         }
 
-        // 하모나이즈 모드 (화음 생성)
-        function startHarmonizeMode() {
+        // 하모나이즈 모드 실행
+        function executeHarmonizeMode(masterVolume, tempoAdjust) {
             uploadedAudioFiles.forEach((audioData, index) => {
                 const audio = audioData.audio;
-                audio.volume = (audioData.volume * parseFloat(document.getElementById('masterVolume').value)) / uploadedAudioFiles.length;
-                audio.currentTime = 0;
-                
-                // 각 파일마다 약간 다른 시작 시간으로 화음 효과
-                const delayOffset = index * 0.1; // 0.1초씩 지연
-                const tempoAdjust = parseFloat(document.getElementById('tempoAdjust').value);
+                audio.volume = (audioData.volume * masterVolume) / Math.sqrt(uploadedAudioFiles.length);
                 audio.playbackRate = tempoAdjust;
 
+                // 각 파일마다 약간 다른 시작 시간으로 화음 효과
+                const delayOffset = index * 200; // 200ms씩 지연
+
                 setTimeout(() => {
+                    audio.currentTime = 0;
                     audio.play().catch(e => console.log(`파일 ${index} 재생 오류:`, e));
-                }, delayOffset * 1000);
+                }, delayOffset);
             });
+
+            setTimeout(() => {
+                document.getElementById('statusDisplay').innerHTML = `
+                    <div style="color: #2ecc71; font-weight: bold;">
+                        ✅ 하모나이즈 합성 완료! 화음 효과로 재생 중 🎼
+                    </div>
+                `;
+            }, uploadedAudioFiles.length * 200 + 500);
         }
 
         // 합성 정지
         function stopComposition() {
             isComposing = false;
+            
             uploadedAudioFiles.forEach(audioData => {
                 if (audioData.audio) {
                     audioData.audio.pause();
                     audioData.audio.currentTime = 0;
                 }
+                audioData.isPlaying = false;
             });
             
-            document.getElementById('waveformDisplay').innerHTML = '합성이 정지되었습니다';
+            document.getElementById('statusDisplay').innerHTML = `
+                <div style="color: #e74c3c; font-weight: bold;">
+                    ⏹️ 합성이 정지되었습니다
+                </div>
+            `;
+            
+            // 재생 버튼들 초기화
+            uploadedAudioFiles.forEach((audioData, index) => {
+                const playBtn = document.getElementById(`play-btn-${index}`);
+                if (playBtn) {
+                    playBtn.textContent = '▶️ 재생';
+                }
+            });
         }
 
-        // 마스터 볼륨 업데이트
-        function updateMasterVolume() {
-            const volume = document.getElementById('masterVolume').value;
-            document.getElementById('masterVolumeValue').textContent = volume;
+        // 합성 음악 저장
+        function saveComposition() {
+            if (uploadedAudioFiles.length === 0) {
+                alert('저장할 음악 파일이 없습니다.');
+                return;
+            }
+
+            const title = prompt('합성 음악의 제목을 입력하세요:') || '합성 음악';
+            const content = prompt('합성 음악의 내용을 입력하세요:') || '업로드된 파일들을 합성한 음악';
+            const description = prompt('합성 음악의 설명을 입력하세요:') || '설명 없음';
+
+            const compositionData = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                description: description,
+                createdAt: new Date().toLocaleDateString('ko-KR'),
+                type: 'composition',
+                files: uploadedAudioFiles.map(file => ({
+                    name: file.name,
+                    volume: file.volume
+                })),
+                settings: {
+                    synthesisMode: document.getElementById('synthesisMode').value,
+                    masterVolume: document.getElementById('masterVolume').value,
+                    tempoAdjust: document.getElementById('tempoAdjust').value
+                }
+            };
+
+            albums.push(compositionData);
+            localStorage.setItem('musicAlbums', JSON.stringify(albums));
+            displayAlbums();
+            
+            document.getElementById('statusDisplay').innerHTML = `
+                <div style="color: #2ecc71; font-weight: bold;">
+                    💾 "${title}"이(가) 앨범에 저장되었습니다!
+                </div>
+            `;
         }
 
-        // 크로스페이드 업데이트
-        function updateCrossfade() {
-            const value = document.getElementById('crossfade').value;
-            document.getElementById('crossfadeValue').textContent = value;
-        }
-
-        // 이펙트 업데이트
-        function updateEffects() {
-            const reverbWet = document.getElementById('reverbWet').value;
-            const delayWet = document.getElementById('delayWet').value;
-            const filterFreq = document.getElementById('filterFreq').value;
-
-            document.getElementById('reverbWetValue').textContent = reverbWet;
-            document.getElementById('delayWetValue').textContent = delayWet;
-            document.getElementById('filterFreqValue').textContent = filterFreq + 'Hz';
-        }
-
-        // 합성 모드 업데이트
-        function updateSynthesisMode() {
-            const mode = document.getElementById('synthesisMode').value;
-            console.log('합성 모드 변경:', getModeName(mode));
-        }
-
-        // 템포 업데이트
-        function updateTempo() {
-            const tempo = document.getElementById('tempoAdjust').value;
-            document.getElementById('tempoAdjustValue').textContent = tempo + 'x';
+        // 모든 파일 지우기
+        function clearAll() {
+            if (confirm('모든 업로드된 파일을 제거하시겠습니까?')) {
+                stopComposition();
+                uploadedAudioFiles.forEach(audioData => {
+                    if (audioData.audio) {
+                        audioData.audio.pause();
+                    }
+                });
+                uploadedAudioFiles = [];
+                displayUploadedFiles();
+                document.getElementById('statusDisplay').innerHTML = '음악 파일을 업로드하고 합성 버튼을 눌러주세요!';
+            }
         }
 
         // 모드 이름 가져오기
@@ -1095,61 +978,22 @@
             return modeNames[mode] || mode;
         }
 
-        // 합성 음악 저장
-        function saveComposition() {
-            if (uploadedAudioFiles.length === 0) {
-                alert('저장할 음악 파일이 없습니다.');
-                return;
-            }
-
-            const title = prompt('합성 음악의 제목을 입력하세요:');
-            if (!title) return;
-
-            const content = prompt('합성 음악의 내용을 입력하세요:');
-            const description = prompt('합성 음악의 설명을 입력하세요:');
-
-            const compositionData = {
-                id: Date.now(),
-                title: title || '합성 음악',
-                content: content || '업로드된 파일들을 합성한 음악',
-                description: description || '설명 없음',
-                createdAt: new Date().toLocaleDateString('ko-KR'),
-                type: 'composition',
-                files: uploadedAudioFiles.map(file => ({
-                    name: file.name,
-                    volume: file.volume
-                })),
-                settings: {
-                    synthesisMode: document.getElementById('synthesisMode').value,
-                    masterVolume: document.getElementById('masterVolume').value,
-                    crossfade: document.getElementById('crossfade').value,
-                    tempoAdjust: document.getElementById('tempoAdjust').value,
-                    reverbWet: document.getElementById('reverbWet').value,
-                    delayWet: document.getElementById('delayWet').value,
-                    filterFreq: document.getElementById('filterFreq').value
-                }
-            };
-
-            albums.push(compositionData);
-            localStorage.setItem('musicAlbums', JSON.stringify(albums));
-            displayAlbums();
-            alert('합성 음악이 앨범에 저장되었습니다!');
+        // 값 업데이트 함수들
+        function updateMasterVolume() {
+            const volume = document.getElementById('masterVolume').value;
+            document.getElementById('masterVolumeValue').textContent = volume;
         }
 
-        // 모두 지우기
-        function clearAll() {
-            if (confirm('모든 업로드된 파일을 제거하시겠습니까?')) {
-                stopComposition();
-                uploadedAudioFiles.forEach(audioData => {
-                    if (audioData.audio) {
-                        audioData.audio.pause();
-                    }
-                });
-                uploadedAudioFiles = [];
-                displayUploadedFiles();
-                document.getElementById('waveformDisplay').innerHTML = '합성된 음악의 파형이 여기에 표시됩니다';
-            }
+        function updateTempo() {
+            const tempo = document.getElementById('tempoAdjust').value;
+            document.getElementById('tempoAdjustValue').textContent = tempo + 'x';
         }
+
+        // 실시간 업데이트를 위한 이벤트 리스너
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('masterVolume').addEventListener('input', updateMasterVolume);
+            document.getElementById('tempoAdjust').addEventListener('input', updateTempo);
+        });
 
         // 앨범 트랙 추가
         function addAlbumTrack() {
@@ -1246,18 +1090,11 @@
             // 설정 적용
             document.getElementById('synthesisMode').value = settings.synthesisMode;
             document.getElementById('masterVolume').value = settings.masterVolume;
-            document.getElementById('crossfade').value = settings.crossfade;
             document.getElementById('tempoAdjust').value = settings.tempoAdjust;
-            document.getElementById('reverbWet').value = settings.reverbWet;
-            document.getElementById('delayWet').value = settings.delayWet;
-            document.getElementById('filterFreq').value = settings.filterFreq;
 
             // 값 표시 업데이트
             updateMasterVolume();
-            updateCrossfade();
             updateTempo();
-            updateEffects();
-            updateSynthesisMode();
 
             alert(`"${track.title}" 트랙의 합성 설정이 로드되었습니다!`);
         }
@@ -1357,63 +1194,34 @@
             document.getElementById(tabName).classList.add('active');
         }
 
-        // 키보드 단축키
-        document.addEventListener('keydown', (e) => {
-            // 스페이스바로 합성 시작/정지
-            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                if (isComposing) {
-                    stopComposition();
-                } else {
-                    startComposition();
-                }
-            }
-
-            // 키보드로 음표 연주
-            const note = notes.find(n => n.key === e.code);
-            if (note && !e.repeat) {
-                const keyElement = document.querySelector(`[data-note="${note.name}"]`);
-                playKeyboardNote(note.freq, keyElement);
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            const note = notes.find(n => n.key === e.code);
-            if (note) {
-                const keyElement = document.querySelector(`[data-note="${note.name}"]`);
-                stopKeyboardNote(keyElement);
-            }
-        });
-
         // 드래그 앤 드롭 지원
-        const uploadArea = document.getElementById('audioFiles').parentElement;
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.3)';
-        });
-
-        uploadArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadArea = document.querySelector('.file-input-wrapper');
             
-            const files = Array.from(e.dataTransfer.files);
-            files.forEach(file => {
-                if (file.type.startsWith('audio/')) {
-                    processAudioFile(file);
-                }
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.querySelector('.file-input-label').style.backgroundColor = 'rgba(102, 126, 234, 0.3)';
+            });
+
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.querySelector('.file-input-label').style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.querySelector('.file-input-label').style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                
+                const files = Array.from(e.dataTransfer.files);
+                files.forEach(file => {
+                    if (file.type.startsWith('audio/')) {
+                        processAudioFile(file);
+                    }
+                });
             });
         });
 
         console.log('🎵 나만의 뮤직 앨범 제작소가 준비되었습니다!');
-        console.log('키보드 단축키:');
-        console.log('- 스페이스바: 합성 시작/정지');
-        console.log('- A,W,S,E,D,F,T,G,Y,H,U,J: 음표 연주');
         console.log('지원되는 음악 파일: MP3, WAV, OGG, M4A 등');
     </script>
 </body>
